@@ -1,0 +1,17 @@
+{
+    "version": "0.2",
+    "ignorePaths": [],
+    "dictionaryDefinitions": [],
+    "dictionaries": [],
+    "words": [
+        "apikey",
+        "datetime",
+        "initialise",
+        "octocrab",
+        "postgrest",
+        "SUPABASE",
+        "tera"
+    ],
+    "ignoreWords": [],
+    "import": []
+}
