@@ -65,8 +65,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
                     .ok_or("can't find github token")?
                     .to_string(),
             )
-            .build()
-            .expect("issue building octocrab lib"),
+            .build()?,
     );
 
     let pg = Postgrest::new(
@@ -104,6 +103,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
 }
 
 async fn job_func() -> Result<(), Box<dyn std::error::Error>> {
+    // TODO, we shouldn't initialize supabase twice here. 
     let pg2 = Postgrest::new(
         option_env!("SUPABASE_URL")
             .ok_or("error finding supabase url")?
@@ -125,8 +125,9 @@ async fn job_func() -> Result<(), Box<dyn std::error::Error>> {
         .await?
         .text()
         .await?;
+    log::info!("length of issues db: {}", res.len());
     let obj: Vec<IssueObject> =
-        serde_json::from_str(res.as_str()).expect("error parsing json for most recent issue");
+        serde_json::from_str(res.as_str())?;
     let datetime: DateTime<Utc> = obj[0].created_at.parse()?;
     log::info!("latest datetime is: {}", datetime);
 
@@ -137,8 +138,7 @@ async fn job_func() -> Result<(), Box<dyn std::error::Error>> {
         .state(octocrab::params::State::Open)
         .per_page(50)
         .send()
-        .await
-        .expect("error fetching issues");
+        .await?;
     loop {
         for issue in &page {
             if issue.created_at <= datetime {
@@ -162,7 +162,7 @@ async fn job_func() -> Result<(), Box<dyn std::error::Error>> {
     log::info!("Found {:?} new issues to write", issue_vec.len());
     if issue_vec.len() != 0 {
         pg2.from("Issues")
-            .insert(serde_json::to_string(&issue_vec).expect("error serializing issue vec"))
+            .insert(serde_json::to_string(&issue_vec)?)
             .execute()
             .await?
             .text()
