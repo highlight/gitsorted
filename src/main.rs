@@ -125,12 +125,14 @@ async fn job_func() -> Result<(), Box<dyn std::error::Error>> {
         .await?
         .text()
         .await?;
-    log::info!("length of issues db: {}", res.len());
+    log::info!("content of issues db: {}", res);
     let obj: Vec<IssueObject> =
-        serde_json::from_str(res.as_str())?;
-    let datetime: DateTime<Utc> = obj[0].created_at.parse()?;
+        serde_json::from_str(res.as_str()).map_err(|e| format!("error parsing json: {}", e))?;
+    if obj.len() != 1 {
+        return Err("length of return value from supabase is not 1".into());
+    }
+    let datetime: DateTime<Utc> = obj[0].created_at.parse().map_err(|e| format!("error parsing datetime: {}", e))?;
     log::info!("latest datetime is: {}", datetime);
-
     let mut issue_vec: Vec<IssueObject> = Vec::new();
     let mut page = octocrab::instance()
         .issues("highlight", "highlight")
