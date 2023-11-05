@@ -6,6 +6,7 @@
     "words": [
         "apikey",
         "datetime",
+        "healthz",
         "initialise",
         "octocrab",
         "postgrest",

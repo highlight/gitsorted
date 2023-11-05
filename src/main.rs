@@ -23,6 +23,11 @@ struct IssueObject {
     created_at: String,
     title: String,
 }
+// simple health check endpoint on /healthz
+#[get("/healthz")]
+fn healthz() -> &'static str {
+    "OK"
+}
 
 #[get("/")]
 async fn index(postgrest: &State<postgrest::Postgrest>) -> Template {
@@ -93,7 +98,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
 
     let _rocket = rocket::build()
         .manage(pg)
-        .mount("/", routes![index])
+        .mount("/", routes![index, healthz])
         .register("/", catchers![internal_error])
         .attach(Template::fairing())
         .launch()
